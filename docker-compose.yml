@@ -1,0 +1,42 @@
+# Docker Compose pour le backend uniquement
+version: '3.8'
+
+services:
+  backend:
+    build: ./  # Construction du conteneur Symfony depuis le répertoire racine du backend
+    container_name: symfony_api  # Nom du conteneur pour identification
+    ports:
+      - "8000:8000"  # Mapping du port 8000 du conteneur vers l'hôte
+    volumes:
+      - .:/backlog-symfony  # Montage du code source local dans le conteneur
+    environment:
+      APP_ENV: dev  # Mode de développement
+      DATABASE_URL: mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}  # URL de connexion à la base de données
+    depends_on:
+      - db  # Assure que le service db démarre avant backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  db:
+    image: mysql:8.0  # Utilisation de l'image officielle MySQL
+    container_name: mysql_db  # Nom du conteneur pour identification
+    ports:
+      - "3306:3306"  # Expose le port MySQL
+    environment:
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}  # Définition du mot de passe root
+      DB_NAME: ${DB_NAME}  # Création automatique de la base de données
+      DB_USER: ${DB_USER}  # Nom d'utilisateur de la base de données
+      DB_PASSWORD: ${DB_PASSWORD}  # Mot de passe utilisateur
+    volumes:
+      - db_data:/var/lib/mysql  # Persistance des données MySQL
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db_data:  # Déclaration du volume pour la base de données
